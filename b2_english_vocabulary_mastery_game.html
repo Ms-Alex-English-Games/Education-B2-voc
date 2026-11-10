@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2 English Vocabulary Quest</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f6ff',
+                            100: '#e0edff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .prefix-bucket {
+            transition: all 0.2s ease-in-out;
+        }
+        .prefix-bucket.drag-over {
+            transform: scale(1.03);
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-blue-500/20">
+                    B2
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-slate-900 leading-tight">Vocab Master</h1>
+                    <p class="text-xs text-slate-500 font-semibold">Prepositions & Prefixes</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div id="stats-bar" class="hidden flex items-center gap-4">
+                <!-- Streak -->
+                <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-full font-bold text-xs">
+                    <i class="fa-solid fa-fire text-amber-500"></i>
+                    <span id="streak-count">0</span>
+                </div>
+                <!-- Score -->
+                <div class="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1.5 rounded-full font-bold text-xs">
+                    <i class="fa-solid fa-star text-indigo-500"></i>
+                    <span id="score-count">0 pts</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Bar (Active during quiz) -->
+        <div id="progress-container" class="hidden w-full bg-slate-100 h-2">
+            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 transition-all duration-500 w-0"></div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 flex-grow w-full flex items-center justify-center">
+
+        <!-- SCREEN 1: WELCOME SCREEN -->
+        <div id="welcome-screen" class="w-full max-w-lg bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-6 pop-in">
+            <div class="w-20 h-20 mx-auto bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-4xl shadow-inner">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            
+            <div class="space-y-2">
+                <h2 class="text-2xl font-extrabold text-slate-900">Ready for your B2 Challenge?</h2>
+                <p class="text-slate-600 text-sm">Master tricky prepositions, phrasal verbs, and negative adjective prefixes with instant feedback and explanations!</p>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-left space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs mt-0.5">1</div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">Round 1: Prepositions & Phrasal Verbs</p>
+                        <p class="text-xs text-slate-500">Select the correct preposition to complete each sentence.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-xs mt-0.5">2</div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">Round 2: Negative Prefix Sort</p>
+                        <p class="text-xs text-slate-500">Categorize adjectives into <span class="font-mono bg-slate-200 px-1 rounded">im-</span>, <span class="font-mono bg-slate-200 px-1 rounded">un-</span>, or <span class="font-mono bg-slate-200 px-1 rounded">in-</span> buckets.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0 text-base flex items-center justify-center gap-2">
+                <span>Start Quiz Challenge</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- SCREEN 2: MULTIPLE CHOICE ROUND (Prepositions) -->
+        <div id="mc-screen" class="hidden w-full max-w-xl bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <span id="round-title">Round 1: Prepositions</span>
+                <span id="question-counter">Question 1 of 8</span>
+            </div>
+
+            <!-- Sentence Display -->
+            <div class="min-h-[100px] flex items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <p id="sentence-text" class="text-xl md:text-2xl font-bold text-center text-slate-800 leading-relaxed">
+                    <!-- Dynamic sentence inserted here -->
+                </p>
+            </div>
+
+            <!-- Options Container -->
+            <div id="options-container" class="grid grid-cols-2 gap-4">
+                <!-- Option buttons dynamically generated -->
+            </div>
+
+            <!-- Explanation Card (Hidden by default) -->
+            <div id="explanation-card" class="hidden p-4 rounded-2xl border transition-all pop-in">
+                <div class="flex items-start gap-3">
+                    <div id="explanation-icon" class="text-xl mt-0.5"></div>
+                    <div>
+                        <h4 id="explanation-title" class="font-bold text-sm"></h4>
+                        <p id="explanation-text" class="text-xs mt-1 text-slate-600 leading-normal"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Button Container -->
+            <div class="flex justify-end pt-2">
+                <button id="next-btn" onclick="nextQuestion()" class="hidden px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-md flex items-center gap-2 text-sm">
+                    <span>Next Question</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: PREFIX SORTING ROUND -->
+        <div id="prefix-screen" class="hidden w-full max-w-2xl bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider">Round 2: Prefix Opposites</span>
+                    <h2 class="text-xl font-extrabold text-slate-900">Sort the Adjectives</h2>
+                </div>
+                <div class="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg font-medium">
+                    Click word, then click bucket (or drag & drop)
+                </div>
+            </div>
+
+            <!-- Active Word Chip Display -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[90px] flex flex-wrap items-center justify-center gap-2" id="words-pool">
+                <!-- Word badges will be loaded here -->
+            </div>
+
+            <!-- 3 Prefix Buckets -->
+            <div class="grid grid-cols-3 gap-3 md:gap-4">
+                <!-- bucket im- -->
+                <div data-prefix="im-" onclick="handleBucketClick('im-')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'im-')" class="prefix-bucket cursor-pointer border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-50 rounded-2xl p-4 text-center min-h-[160px] flex flex-col justify-start items-center">
+                    <span class="font-black text-xl text-blue-600 bg-blue-100 px-3 py-1 rounded-xl mb-3">im-</span>
+                    <div id="bucket-im-" class="w-full flex flex-wrap gap-1.5 justify-center"></div>
+                </div>
+
+                <!-- bucket un- -->
+                <div data-prefix="un-" onclick="handleBucketClick('un-')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'un-')" class="prefix-bucket cursor-pointer border-2 border-dashed border-lime-300 bg-lime-50/50 hover:bg-lime-50 rounded-2xl p-4 text-center min-h-[160px] flex flex-col justify-start items-center">
+                    <span class="font-black text-xl text-lime-600 bg-lime-100 px-3 py-1 rounded-xl mb-3">un-</span>
+                    <div id="bucket-un-" class="w-full flex flex-wrap gap-1.5 justify-center"></div>
+                </div>
+
+                <!-- bucket in- -->
+                <div data-prefix="in-" onclick="handleBucketClick('in-')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'in-')" class="prefix-bucket cursor-pointer border-2 border-dashed border-amber-300 bg-amber-50/50 hover:bg-amber-50 rounded-2xl p-4 text-center min-h-[160px] flex flex-col justify-start items-center">
+                    <span class="font-black text-xl text-amber-600 bg-amber-100 px-3 py-1 rounded-xl mb-3">in-</span>
+                    <div id="bucket-in-" class="w-full flex flex-wrap gap-1.5 justify-center"></div>
+                </div>
+            </div>
+
+            <!-- Bucket Feedback Banner -->
+            <div id="prefix-feedback" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
+
+            <div class="flex justify-end pt-2">
+                <button id="finish-prefix-btn" onclick="finishGame()" class="hidden px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all shadow-md flex items-center gap-2 text-sm pop-in">
+                    <span>View Results</span>
+                    <i class="fa-solid fa-trophy text-amber-300"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: RESULTS & REVIEW SCREEN -->
+        <div id="results-screen" class="hidden w-full max-w-2xl bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6 pop-in">
+            <div class="text-center space-y-3">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-400 to-yellow-300 text-white rounded-full flex items-center justify-center text-4xl shadow-lg shadow-amber-500/30">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900">Quiz Completed!</h2>
+                <p id="score-summary" class="text-slate-600 font-medium"></p>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <p class="text-xs text-slate-500 font-semibold uppercase">Total Score</p>
+                    <p id="final-score" class="text-2xl font-black text-blue-600 mt-1">0</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <p class="text-xs text-slate-500 font-semibold uppercase">Accuracy</p>
+                    <p id="final-accuracy" class="text-2xl font-black text-indigo-600 mt-1">0%</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <p class="text-xs text-slate-500 font-semibold uppercase">Max Streak</p>
+                    <p id="final-streak" class="text-2xl font-black text-amber-500 mt-1">0</p>
+                </div>
+            </div>
+
+            <!-- Cheat Sheet / Key Concepts Review -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Key Takeaways & Grammar Rules</h3>
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3 max-h-60 overflow-y-auto text-xs text-slate-700">
+                    <div>
+                        <span class="font-bold text-blue-600">instead of + [gerund / noun]:</span> Used to express a choice made in place of another action (e.g., *instead of taking*).
+                    </div>
+                    <div>
+                        <span class="font-bold text-blue-600">suffer from [illness]:</span> Correct preposition for diseases or medical conditions (e.g., *suffering from a cold*).
+                    </div>
+                    <div>
+                        <span class="font-bold text-blue-600">tell someone off:</span> Phrasal verb meaning to reprimand or scold severely.
+                    </div>
+                    <div>
+                        <span class="font-bold text-blue-600">capable of + -ing:</span> Having the ability or skill to do something.
+                    </div>
+                    <div>
+                        <span class="font-bold text-blue-600">wear off:</span> Phrasal verb meaning to gradually diminish or disappear (e.g., novelty, pain).
+                    </div>
+                    <div>
+                        <span class="font-bold text-blue-600">tasked with + [task]:</span> Assigned the duty or responsibility of doing something.
+                    </div>
+                    <div>
+                        <span class="font-bold text-indigo-600">Prefix rules:</span> 
+                        <ul class="list-disc pl-4 mt-1 space-y-0.5">
+                            <li><span class="font-semibold">im-</span> usually precedes root words starting with <strong>p</strong> or <strong>m</strong> (im-possible, im-patient, im-personal).</li>
+                            <li><span class="font-semibold">in-</span> precedes words like in-effective, in-capable, in-sufficient.</li>
+                            <li><span class="font-semibold">un-</span> is the most common general negative prefix (un-necessary, un-emotional, un-predictable).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 pt-2">
+                <button onclick="startGame()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Play Again</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 bg-white">
+        B2 Upper-Intermediate English Practice &bull; Based on Cambridge English Vocabulary Standards
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // -------------------------------------------------------------
+        // DATA STRUCTURES
+        // -------------------------------------------------------------
+
+        // Round 1 Data (From Screenshots 1 & 2)
+        const mcQuestions = [
+            {
+                id: 1,
+                prefix: "Jacob decided to walk to school instead",
+                options: ["of", "from"],
+                suffix: "taking the bus.",
+                correct: "of",
+                explanation: "We use <b>'instead of'</b> followed by a gerund (-ing form) or noun to mean in place of something else."
+            },
+            {
+                id: 2,
+                prefix: "Miss Jenkins has been suffering",
+                options: ["with", "from"],
+                suffix: "a bad cold all week.",
+                correct: "from",
+                explanation: "The verb <b>'suffer'</b> collocates with <b>'from'</b> when referring to illnesses, diseases, or medical conditions."
+            },
+            {
+                id: 3,
+                prefix: "Why did the teacher tell you",
+                options: ["off", "out"],
+                suffix: "this morning?",
+                correct: "off",
+                explanation: "To <b>'tell someone off'</b> is a phrasal verb meaning to speak angrily to someone because they have done something wrong (reprimand)."
+            },
+            {
+                id: 4,
+                prefix: "Do you think he is capable",
+                options: ["of", "to"],
+                suffix: "doing the job?",
+                correct: "of",
+                explanation: "The adjective <b>'capable'</b> is followed by the preposition <b>'of'</b> + gerund (-ing)."
+            },
+            {
+                id: 5,
+                prefix: "This university offers a variety",
+                options: ["of", "from"],
+                suffix: "science courses.",
+                correct: "of",
+                explanation: "We say <b>'a variety of'</b> to mean many different types of things."
+            },
+            {
+                id: 6,
+                prefix: "The novelty of being taught by a robot soon wore",
+                options: ["out", "off"],
+                suffix: ".",
+                correct: "off",
+                explanation: "To <b>'wear off'</b> means to gradually decrease, fade, or lose effectiveness over time (e.g., excitement, pain, novelty)."
+            },
+            {
+                id: 7,
+                prefix: "I think we should head",
+                options: ["off", "away"],
+                suffix: "to the train station soon.",
+                correct: "off",
+                explanation: "To <b>'head off'</b> means to start a journey or leave for a place."
+            },
+            {
+                id: 8,
+                prefix: "The teacher was tasked",
+                options: ["by", "with"],
+                suffix: "improving the students' language skills.",
+                correct: "with",
+                explanation: "To be <b>'tasked with'</b> something means to be given the responsibility or job of doing it."
+            }
+        ];
+
+        // Round 2 Data (From Screenshot 3)
+        const prefixWords = [
+            { word: "possible", correctPrefix: "im-", full: "impossible" },
+            { word: "patient", correctPrefix: "im-", full: "impatient" },
+            { word: "personal", correctPrefix: "im-", full: "impersonal" },
+            { word: "necessary", correctPrefix: "un-", full: "unnecessary" },
+            { word: "emotional", correctPrefix: "un-", full: "unemotional" },
+            { word: "predictable", correctPrefix: "un-", full: "unpredictable" },
+            { word: "effective", correctPrefix: "in-", full: "ineffective" },
+            { word: "capable", correctPrefix: "in-", full: "incapable" },
+            { word: "sufficient", correctPrefix: "in-", full: "insufficient" }
+        ];
+
+        // -------------------------------------------------------------
+        // GAME STATE
+        // -------------------------------------------------------------
+        let currentMCIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let totalAnswered = 0;
+        let totalCorrect = 0;
+        let selectedPrefixWord = null;
+        let remainingPrefixWords = [];
+        let prefixState = { 'im-': [], 'un-': [], 'in-': [] };
+
+        // -------------------------------------------------------------
+        // GAME LIFECYCLE FUNCTIONS
+        // -------------------------------------------------------------
+
+        function startGame() {
+            currentMCIndex = 0;
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            totalAnswered = 0;
+            totalCorrect = 0;
+            selectedPrefixWord = null;
+
+            // UI Reset
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('prefix-screen').classList.add('hidden');
+            document.getElementById('mc-screen').classList.remove('hidden');
+            document.getElementById('stats-bar').classList.remove('hidden');
+            document.getElementById('stats-bar').classList.add('flex');
+            document.getElementById('progress-container').classList.remove('hidden');
+
+            updateStatsDisplay();
+            loadMCQuestion();
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('score-count').textContent = `${score} pts`;
+            document.getElementById('streak-count').textContent = streak;
+        }
+
+        function updateProgressBar(percent) {
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+
+        // -------------------------------------------------------------
+        // ROUND 1: MULTIPLE CHOICE LOGIC
+        // -------------------------------------------------------------
+
+        function loadMCQuestion() {
+            const q = mcQuestions[currentMCIndex];
+            const totalQuestions = mcQuestions.length;
+
+            // Reset UI states
+            document.getElementById('question-counter').textContent = `Question ${currentMCIndex + 1} of ${totalQuestions}`;
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('explanation-card').classList.add('hidden');
+
+            // Render sentence with gap
+            const gapHTML = `<span id="gap-target" class="inline-block border-b-2 border-brand-500 text-brand-600 px-3 py-0.5 mx-1 min-w-[60px] text-center font-black bg-blue-50/50 rounded">???</span>`;
+            document.getElementById('sentence-text').innerHTML = `${q.prefix} ${gapHTML} ${q.suffix}`;
+
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            // Shuffle options for fun
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn py-4 px-6 text-lg font-bold bg-slate-50 border-2 border-slate-200 rounded-2xl hover:border-blue-500 hover:bg-blue-50/30 transition-all text-slate-800 flex items-center justify-center gap-2 active:scale-95';
+                btn.innerHTML = `<span>${opt}</span>`;
+                btn.onclick = () => selectMCOption(opt, q, btn);
+                container.appendChild(btn);
+            });
+
+            // Update global progress
+            const progress = ((currentMCIndex) / (totalQuestions + 1)) * 100;
+            updateProgressBar(progress);
+        }
+
+        function selectMCOption(chosenOption, question, clickedBtn) {
+            // Disable all option buttons
+            const allBtns = document.querySelectorAll('.opt-btn');
+            allBtns.forEach(btn => btn.disabled = true);
+
+            const isCorrect = chosenOption === question.correct;
+            const gapTarget = document.getElementById('gap-target');
+            gapTarget.textContent = chosenOption;
+
+            totalAnswered++;
+
+            if (isCorrect) {
+                totalCorrect++;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+                const pointsGained = 10 + (streak * 2);
+                score += pointsGained;
+
+                // Visual styling for correct
+                clickedBtn.className = 'opt-btn py-4 px-6 text-lg font-bold bg-emerald-50 border-2 border-emerald-500 text-emerald-700 rounded-2xl flex items-center justify-center gap-2 pop-in';
+                clickedBtn.innerHTML += ` <i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+                gapTarget.className = 'inline-block text-emerald-600 font-black border-b-2 border-emerald-500 px-3 py-0.5 mx-1 bg-emerald-50 rounded';
+
+                showExplanation(true, question.explanation);
+                triggerMiniConfetti();
+            } else {
+                streak = 0;
+                // Visual styling for incorrect
+                clickedBtn.className = 'opt-btn py-4 px-6 text-lg font-bold bg-rose-50 border-2 border-rose-500 text-rose-700 rounded-2xl flex items-center justify-center gap-2 shake';
+                clickedBtn.innerHTML += ` <i class="fa-solid fa-circle-xmark text-rose-600"></i>`;
+                gapTarget.className = 'inline-block text-rose-600 font-black border-b-2 border-rose-500 px-3 py-0.5 mx-1 bg-rose-50 rounded';
+
+                // Highlight correct button
+                allBtns.forEach(btn => {
+                    if (btn.textContent.trim() === question.correct) {
+                        btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
+                    }
+                });
+
+                showExplanation(false, question.explanation);
+            }
+
+            updateStatsDisplay();
+
+            // Show Next Button
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.remove('hidden');
+            nextBtn.classList.add('pop-in');
+        }
+
+        function showExplanation(isCorrect, text) {
+            const card = document.getElementById('explanation-card');
+            const icon = document.getElementById('explanation-icon');
+            const title = document.getElementById('explanation-title');
+            const expText = document.getElementById('explanation-text');
+
+            card.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-rose-50', 'border-rose-200');
+
+            if (isCorrect) {
+                card.classList.add('bg-emerald-50', 'border-emerald-200');
+                icon.innerHTML = `<i class="fa-solid fa-lightbulb text-emerald-600"></i>`;
+                title.textContent = "Great Job!";
+                title.className = "font-bold text-sm text-emerald-800";
+            } else {
+                card.classList.add('bg-rose-50', 'border-rose-200');
+                icon.innerHTML = `<i class="fa-solid fa-circle-info text-rose-600"></i>`;
+                title.textContent = "Grammar Note";
+                title.className = "font-bold text-sm text-rose-800";
+            }
+
+            expText.innerHTML = text;
+        }
+
+        function nextQuestion() {
+            currentMCIndex++;
+            if (currentMCIndex < mcQuestions.length) {
+                loadMCQuestion();
+            } else {
+                startPrefixRound();
+            }
+        }
+
+        // -------------------------------------------------------------
+        // ROUND 2: PREFIX SORTING LOGIC
+        // -------------------------------------------------------------
+
+        function startPrefixRound() {
+            document.getElementById('mc-screen').classList.add('hidden');
+            document.getElementById('prefix-screen').classList.remove('hidden');
+            updateProgressBar(65);
+
+            // Prepare Words Pool
+            remainingPrefixWords = [...prefixWords].sort(() => Math.random() - 0.5);
+            prefixState = { 'im-': [], 'un-': [], 'in-': [] };
+
+            // Reset Buckets HTML
+            document.getElementById('bucket-im-').innerHTML = '';
+            document.getElementById('bucket-un-').innerHTML = '';
+            document.getElementById('bucket-in-').innerHTML = '';
+            document.getElementById('prefix-feedback').classList.add('hidden');
+            document.getElementById('finish-prefix-btn').classList.add('hidden');
+
+            renderWordPool();
+        }
+
+        function renderWordPool() {
+            const pool = document.getElementById('words-pool');
+            pool.innerHTML = '';
+
+            if (remainingPrefixWords.length === 0) {
+                pool.innerHTML = `<p class="text-xs font-bold text-emerald-600 flex items-center gap-1"><i class="fa-solid fa-check-double"></i> All words have been categorized!</p>`;
+                document.getElementById('finish-prefix-btn').classList.remove('hidden');
+                updateProgressBar(90);
+                return;
+            }
+
+            remainingPrefixWords.forEach((item) => {
+                const badge = document.createElement('div');
+                badge.draggable = true;
+                badge.dataset.word = item.word;
+                
+                let isSelected = selectedPrefixWord && selectedPrefixWord.word === item.word;
+
+                badge.className = `cursor-pointer px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm border transition-all flex items-center gap-1.5 select-none ${
+                    isSelected 
+                    ? 'bg-blue-600 text-white border-blue-600 scale-105 shadow-md shadow-blue-500/30' 
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                }`;
+
+                badge.innerHTML = `<i class="fa-solid fa-grip-dots-vertical opacity-40 text-[10px]"></i> ${item.word}`;
+
+                // Click handler
+                badge.onclick = (e) => {
+                    e.stopPropagation();
+                    if (selectedPrefixWord && selectedPrefixWord.word === item.word) {
+                        selectedPrefixWord = null;
+                    } else {
+                        selectedPrefixWord = item;
+                    }
+                    renderWordPool();
+                };
+
+                // Drag handlers
+                badge.ondragstart = (e) => {
+                    selectedPrefixWord = item;
+                    e.dataTransfer.setData('text/plain', item.word);
+                };
+
+                pool.appendChild(badge);
+            });
+        }
+
+        function handleBucketClick(prefix) {
+            if (!selectedPrefixWord) {
+                showPrefixFeedback("Select a word above first, then click a bucket!", "warning");
+                return;
+            }
+            processPrefixPlacement(selectedPrefixWord, prefix);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, prefix) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            if (selectedPrefixWord) {
+                processPrefixPlacement(selectedPrefixWord, prefix);
+            }
+        }
+
+        function processPrefixPlacement(item, chosenPrefix) {
+            totalAnswered++;
+            const isCorrect = item.correctPrefix === chosenPrefix;
+
+            if (isCorrect) {
+                totalCorrect++;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+                score += 15;
+
+                // Move from pool to bucket
+                remainingPrefixWords = remainingPrefixWords.filter(w => w.word !== item.word);
+                prefixState[chosenPrefix].push(item);
+
+                // Add Chip to Bucket
+                const bucketContainer = document.getElementById(`bucket-${chosenPrefix}`);
+                const chip = document.createElement('span');
+                chip.className = 'bg-white border border-slate-200 text-slate-800 text-[11px] font-bold px-2 py-1 rounded-lg shadow-xs pop-in inline-flex items-center gap-1';
+                chip.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-[10px]"></i> ${item.full}`;
+                bucketContainer.appendChild(chip);
+
+                showPrefixFeedback(`Correct! <b>${item.full}</b> is the opposite of ${item.word}.`, "success");
+                triggerMiniConfetti();
+            } else {
+                streak = 0;
+                showPrefixFeedback(`Oops! <b>${item.word}</b> goes with <b>${item.correctPrefix}</b> (making <i>${item.full}</i>).`, "error");
+            }
+
+            selectedPrefixWord = null;
+            updateStatsDisplay();
+            renderWordPool();
+        }
+
+        function showPrefixFeedback(message, type) {
+            const fb = document.getElementById('prefix-feedback');
+            fb.classList.remove('hidden', 'bg-amber-100', 'text-amber-800', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
+
+            if (type === 'warning') {
+                fb.classList.add('bg-amber-100', 'text-amber-800');
+            } else if (type === 'success') {
+                fb.classList.add('bg-emerald-100', 'text-emerald-800');
+            } else if (type === 'error') {
+                fb.classList.add('bg-rose-100', 'text-rose-800');
+            }
+
+            fb.innerHTML = message;
+        }
+
+        // -------------------------------------------------------------
+        // FINISH & RESULTS
+        // -------------------------------------------------------------
+
+        function finishGame() {
+            updateProgressBar(100);
+            document.getElementById('prefix-screen').classList.add('hidden');
+            document.getElementById('stats-bar').classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+
+            const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('final-streak').textContent = maxStreak;
+
+            let summaryText = "";
+            if (accuracy >= 85) {
+                summaryText = "Outstanding! You have an excellent grasp of B2 English prepositions and prefixes!";
+                triggerBigConfetti();
+            } else if (accuracy >= 60) {
+                summaryText = "Good effort! Review the notes below to solidify your B2 vocabulary skills.";
+            } else {
+                summaryText = "Keep practicing! Review the grammar rules below and try again to improve your score.";
+            }
+
+            document.getElementById('score-summary').textContent = summaryText;
+        }
+
+        // -------------------------------------------------------------
+        // ANIMATION & VISUAL EFFECTS
+        // -------------------------------------------------------------
+
+        function triggerMiniConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 25,
+                    spread: 50,
+                    origin: { y: 0.8 }
+                });
+            }
+        }
+
+        function triggerBigConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
